@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+        <i class="fas fa-user-plus text-green-600 mr-2"></i>
+        Cadastro de Voluntário
+    </h2>
+
+    <form method="POST" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nome -->
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 mb-2" for="nome">
+                    <i class="fas fa-user mr-2"></i>Nome Completo
+                </label>
+                <input type="text" id="nome" name="nome" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            </div>
+
+            <!-- Email -->
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 mb-2" for="email">
+                    <i class="fas fa-envelope mr-2"></i>Email
+                </label>
+                <input type="email" id="email" name="email" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            </div>
+
+            <!-- Senha -->
+            <div>
+                <label class="block text-gray-700 mb-2" for="senha">
+                    <i class="fas fa-lock mr-2"></i>Senha
+                </label>
+                <input type="password" id="senha" name="senha" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            </div>
+
+            <!-- Telefone -->
+            <div>
+                <label class="block text-gray-700 mb-2" for="telefone">
+                    <i class="fas fa-phone mr-2"></i>Telefone
+                </label>
+                <input type="tel" id="telefone" name="telefone"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            </div>
+
+            <!-- Cidade -->
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 mb-2" for="cidade">
+                    <i class="fas fa-city mr-2"></i>Cidade
+                </label>
+                <input type="text" id="cidade" name="cidade" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            </div>
+
+            <!-- Habilidades -->
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 mb-2">
+                    <i class="fas fa-tools mr-2"></i>Habilidades
+                </label>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {% for habilidade in ['Ensino', 'Saúde', 'Construção', 'Cozinha', 'TI', 'Artes', 'Esportes', 'Idiomas'] %}
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" name="habilidades" value="{{ habilidade }}"
+                            class="rounded text-green-600 focus:ring-green-500">
+                        <span class="text-gray-700">{{ habilidade }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <button type="submit"
+            class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-semibold">
+            <i class="fas fa-user-plus mr-2"></i>Cadastrar como Voluntário
+        </button>
+    </form>
+
+    <div class="mt-6 text-center">
+        <p class="text-gray-600">
+            É uma ONG?
+            <a href="{{ url_for('cadastro_ong') }}" class="text-green-600 hover:text-green-700 font-semibold">
+                Cadastre sua organização aqui
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">
+        <i class="fas fa-search text-green-600 mr-2"></i>
+        Buscar ONGs
+    </h1>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Cidade -->
+            <div>
+                <label class="block text-gray-700 mb-2" for="cidade">
+                    <i class="fas fa-city mr-2"></i>Cidade
+                </label>
+                <input type="text" id="cidade" name="cidade" value="{{ request.args.get('cidade', '') }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Ex: São Paulo">
+            </div>
+
+            <!-- Causa -->
+            <div>
+                <label class="block text-gray-700 mb-2" for="causa">
+                    <i class="fas fa-heart mr-2"></i>Causa
+                </label>
+                <select id="causa" name="causa"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="">Todas as causas</option>
+                    {% for causa in ['Educação', 'Meio Ambiente', 'Saúde', 'Animais', 'Idosos', 'Crianças', 'Pobreza', 'Cultura'] %}
+                    <option value="{{ causa }}" {% if request.args.get('causa') == causa %}selected{% endif %}>
+                        {{ causa }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex items-end space-x-2">
+                <button type="submit"
+                    class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition font-semibold flex-1">
+                    <i class="fas fa-search mr-2"></i>Buscar
+                </button>
+                <a href="{{ url_for('buscar_ongs') }}"
+                    class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                    <i class="fas fa-redo mr-1"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Lista de ONGs -->
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+                ONGs Encontradas ({{ ongs|length }})
+            </h2>
+
+            {% if ongs %}
+            <div class="space-y-4">
+                {% for ong in ongs %}
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-xl font-semibold text-gray-800">{{ ong.nome }}</h3>
+                        <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                            {{ ong.cidade }}/{{ ong.estado }}
+                        </span>
+                    </div>
+
+                    <p class="text-gray-600 mb-4">{{ ong.descricao or "Sem descrição disponível." }}</p>
+
+                    <div class="mb-4">
+                        <div class="flex flex-wrap gap-2">
+                            {% for causa in ong.get_causas() %}
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                {{ causa }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-500">
+                            <i class="fas fa-phone mr-1"></i>{{ ong.telefone or "Não informado" }}
+                        </div>
+                        {% if not current_user.is_authenticated or not hasattr(current_user, 'cnpj') %}
+                        <a href="{{ url_for('voluntariar', ong_id=ong.id) }}"
+                           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm font-semibold">
+                            <i class="fas fa-hand-holding-heart mr-1"></i>Quero Ajudar
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white rounded-lg shadow-md p-8 text-center">
+                <i class="fas fa-search text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">Nenhuma ONG encontrada</h3>
+                <p class="text-gray-500">Tente ajustar os filtros de busca.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Mapa -->
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-map-marker-alt text-green-600 mr-2"></i>
+                Mapa das ONGs
+            </h2>
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <div id="map" class="h-96 rounded-lg border border-gray-200"></div>
+                <div class="mt-4 text-sm text-gray-600">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Clique nos marcadores para ver informações das ONGs
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializa o mapa
+    const map = L.map('map').setView([-23.5505, -46.6333], 10); // Centro em São Paulo
+
+    // Adiciona tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Busca dados das ONGs via API
+    fetch('/api/ongs')
+        .then(response => response.json())
+        .then(ongs => {
+            ongs.forEach(ong => {
+                // Cria marcador no mapa
+                const marker = L.marker([ong.lat, ong.lng]).addTo(map);
+
+                // Popup com informações
+                marker.bindPopup(`
+                    <div class="p-2">
+                        <h3 class="font-semibold text-lg">${ong.nome}</h3>
+                        <p class="text-gray-600">${ong.cidade}</p>
+                        <p class="text-sm mt-2">${ong.descricao || 'Sem descrição'}</p>
+                        <div class="mt-2">
+                            ${ong.causas.map(causa =>
+                                `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1 mb-1">${causa}</span>`
+                            ).join('')}
+                        </div>
+                        ${!currentUserIsONG ?
+                            `<a href="/voluntariar/${ong.id}" class="mt-3 inline-block bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition">
+                                <i class="fas fa-hand-holding-heart mr-1"></i>Quero Ajudar
+                            </a>` : ''
+                        }
+                    </div>
+                `);
+            });
+
+            // Ajusta o zoom para mostrar todos os marcadores
+            if (ongs.length > 0) {
+                const group = new L.featureGroup(ongs.map(ong => L.marker([ong.lat, ong.lng])));
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar ONGs:', error);
+            document.getElementById('map').innerHTML = `
+                <div class="h-full flex items-center justify-center text-gray-500">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
+                        <p>Erro ao carregar o mapa</p>
+                    </div>
+                </div>
+            `;
+        });
+
+    // Variável global para verificar se usuário é ONG
+    const currentUserIsONG = {{ 'true' if current_user.is_authenticated and hasattr(current_user, 'cnpj') else 'false' }};
+});
+</script>
+{% endblock %}
