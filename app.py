@@ -4,6 +4,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import json
+# from flask_mail import Mail, Message
 import os
 
 app = Flask(__name__)
@@ -96,10 +97,18 @@ class Voluntariado(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
+    # Tenta carregar como Usuario primeiro
     user = Usuario.query.get(int(user_id))
     if user:
         return user
-    return ONG.query.get(int(user_id))
+
+    # Se não encontrou, tenta carregar como ONG
+    ong = ONG.query.get(int(user_id))
+    if ong:
+        return ong
+
+    # Se não encontrou nenhum, retorna None
+    return None
 
 
 # ⚠️ **CRIA AS TABELAS AUTOMATICAMENTE NO RENDER** ⚠️
@@ -227,13 +236,17 @@ def logout():
 @login_required
 def dashboard():
     try:
-        if hasattr(current_user, 'cnpj'):
+        # Verifica se é ONG (tem CNPJ) ou Usuário
+        if hasattr(current_user, 'cnpj') and current_user.cnpj:
+            # É uma ONG
             voluntarios = Voluntariado.query.filter_by(ong_id=current_user.id).all()
             return render_template('dashboard.html', voluntarios=voluntarios, is_ong=True)
         else:
+            # É um Usuário
             voluntariados = Voluntariado.query.filter_by(usuario_id=current_user.id).all()
             return render_template('dashboard.html', voluntariados=voluntariados, is_ong=False)
     except Exception as e:
+        print(f"❌ ERRO NO DASHBOARD: {e}")
         return f"<h1>Erro no Dashboard</h1><p>{e}</p>"
 
 
@@ -329,6 +342,99 @@ def create_tables():
         <p><strong>Erro:</strong> {e}</p>
         <p><a href="/">Voltar para Home</a></p>
         """
+
+
+# 🔽🔽🔽 ADICIONE ESTA FUNÇÃO AQUI 🔽🔽🔽
+def enviar_email(destinatario, assunto, corpo):
+    # Versão SIMULADA - só mostra no log (funciona no Render)
+    print("=" * 60)
+    print(f"📧 EMAIL SIMULADO - PARA TESTE")
+    print(f"👤 Destinatário: {destinatario}")
+    print(f"📋 Assunto: {assunto}")
+    print(f"📝 Mensagem: {corpo}")
+    print("=" * 60)
+    return True  # Sempre retorna sucesso para teste
+
+
+# 🔽🔽🔽 ADICIONE ESTAS 2 ROTAS AQUI 🔽🔽🔽
+@app.route('/aceitar-voluntario/<int:voluntariado_id>')
+@login_required
+def aceitar_voluntario(voluntariado_id):
+    try:
+        if not hasattr(current_user, 'cnpj'):  # Só ONG pode aceitar
+            flash('Acesso não autorizado!', 'error')
+            return redirect(url_for('dashboard'))
+
+        voluntariado = Voluntariado.query.get_or_404(voluntariado_id)
+        if voluntariado.ong_id != current_user.id:
+            flash('Acesso não autorizado!', 'error')
+            return redirect(url_for('dashboard'))
+
+        voluntariado.status = 'aceito'
+        db.session.commit()
+
+        # 📧 EMAIL DE ACEITE (SIMULADO)
+        assunto = "🎉 Parabéns! Você foi aceito como voluntário!"
+        corpo = f"""
+        <h2>Parabéns, {voluntariado.usuario.nome}!</h2>
+        <p>Você foi <strong>aceito</strong> como voluntário na <strong>{current_user.nome}</strong>!</p>
+        <p><strong>Próximos passos:</strong></p>
+        <ul>
+            <li>Entre em contato com a ONG: {current_user.telefone}</li>
+            <li>Email da ONG: {current_user.email}</li>
+            <li>Endereço: {current_user.endereco}, {current_user.cidade}</li>
+        </ul>
+        <p>Seja bem-vindo à nossa equipe! 🌟</p>
+        """
+
+        if enviar_email(voluntariado.usuario.email, assunto, corpo):
+            flash('Voluntário aceito e notificado por email!', 'success')
+        else:
+            flash('Voluntário aceito, mas email não enviado.', 'warning')
+
+        return redirect(url_for('dashboard'))
+
+    except Exception as e:
+        flash(f'Erro ao aceitar voluntário: {e}', 'error')
+        return redirect(url_for('dashboard'))
+
+
+@app.route('/recusar-voluntario/<int:voluntariado_id>')
+@login_required
+def recusar_voluntario(voluntariado_id):
+    try:
+        if not hasattr(current_user, 'cnpj'):
+            flash('Acesso não autorizado!', 'error')
+            return redirect(url_for('dashboard'))
+
+        voluntariado = Voluntariado.query.get_or_404(voluntariado_id)
+        if voluntariado.ong_id != current_user.id:
+            flash('Acesso não autorizado!', 'error')
+            return redirect(url_for('dashboard'))
+
+        voluntariado.status = 'recusado'
+        db.session.commit()
+
+        # 📧 EMAIL DE RECUSA (SIMULADO)
+        assunto = "Atualização sobre sua candidatura como voluntário"
+        corpo = f"""
+        <h2>Olá, {voluntariado.usuario.nome}!</h2>
+        <p>Obrigado pelo seu interesse em ser voluntário na <strong>{current_user.nome}</strong>.</p>
+        <p>Infelizmente, no momento <strong>não estamos precisando de pessoas com suas habilidades específicas</strong>.</p>
+        <p>Mas não desanime! Continue buscando oportunidades - outras ONGs certamente precisarão do seu talento! 💪</p>
+        <p>Atenciosamente,<br>Equipe {current_user.nome}</p>
+        """
+
+        if enviar_email(voluntariado.usuario.email, assunto, corpo):
+            flash('Voluntário recusado e notificado por email!', 'info')
+        else:
+            flash('Voluntário recusado, mas email não enviado.', 'warning')
+
+        return redirect(url_for('dashboard'))
+
+    except Exception as e:
+        flash(f'Erro ao recusar voluntário: {e}', 'error')
+        return redirect(url_for('dashboard'))
 
 
 if __name__ == '__main__':
