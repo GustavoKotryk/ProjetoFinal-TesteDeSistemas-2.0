@@ -97,17 +97,21 @@ class Voluntariado(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    # Tenta carregar como Usuario primeiro
+    print(f"🔍 LOAD_USER chamado para ID: {user_id}")
+
+    # Tenta carregar como Usuario
     user = Usuario.query.get(int(user_id))
     if user:
+        print(f"✅ Carregado como USUARIO: {user.nome}")
         return user
 
-    # Se não encontrou, tenta carregar como ONG
+    # Tenta carregar como ONG
     ong = ONG.query.get(int(user_id))
     if ong:
+        print(f"✅ Carregado como ONG: {ong.nome}")
         return ong
 
-    # Se não encontrou nenhum, retorna None
+    print("❌ Nenhum usuário encontrado com este ID")
     return None
 
 
@@ -211,15 +215,30 @@ def login():
         senha = request.form['senha']
         tipo = request.form['tipo']
 
-        user = Usuario.query.filter_by(email=email).first() if tipo == 'usuario' else ONG.query.filter_by(
-            email=email).first()
+        print(f"🔍 LOGIN ORIGINAL: Email={email}, Tipo={tipo}")
 
-        if user and check_password_hash(user.senha, senha):
-            login_user(user)
-            flash('Login realizado com sucesso!', 'success')
-            return redirect(url_for('dashboard'))
+        if tipo == 'usuario':
+            user = Usuario.query.filter_by(email=email).first()
+            user_type = "USUARIO"
         else:
-            flash('Email ou senha incorretos!', 'error')
+            user = ONG.query.filter_by(email=email).first()
+            user_type = "ONG"
+
+        if user:
+            print(f"✅ {user_type} ENCONTRADO: {user.nome}")
+            print(f"   ID: {user.id}, Classe: {user.__class__.__name__}")
+
+            if check_password_hash(user.senha, senha):
+                login_user(user)
+                print(f"🎯 LOGIN REALIZADO: {user.nome} como {user_type}")
+                flash('Login realizado com sucesso!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                print("❌ SENHA INCORRETA")
+        else:
+            print(f"❌ {user_type} NÃO ENCONTRADO")
+
+        flash('Email ou senha incorretos!', 'error')
 
     return render_template('login.html')
 
@@ -436,6 +455,82 @@ def recusar_voluntario(voluntariado_id):
         flash(f'Erro ao recusar voluntário: {e}', 'error')
         return redirect(url_for('dashboard'))
 
+
+# 🔽🔽🔽 ADICIONE ESTAS ROTAS DE DEBUG 🔽🔽🔽
+
+@app.route('/debug-login', methods=['POST'])
+def debug_login():
+    """Rota para debug do login"""
+    email = request.form['email']
+    senha = request.form['senha']
+    tipo = request.form['tipo']
+
+    print(f"🔍 DEBUG LOGIN: Email={email}, Tipo={tipo}")
+
+    if tipo == 'usuario':
+        user = Usuario.query.filter_by(email=email).first()
+        user_type = "Usuario"
+    else:
+        user = ONG.query.filter_by(email=email).first()
+        user_type = "ONG"
+
+    if user:
+        print(f"✅ USUÁRIO ENCONTRADO: {user.nome} (Tipo: {user_type})")
+        print(f"   ID: {user.id}, Tem CNPJ: {hasattr(user, 'cnpj')}")
+
+        if check_password_hash(user.senha, senha):
+            login_user(user)
+            print(f"🎯 LOGIN BEM SUCEDIDO: {user.nome}")
+            return jsonify({
+                'success': True,
+                'user': {
+                    'id': user.id,
+                    'nome': user.nome,
+                    'tipo': user_type,
+                    'tem_cnpj': hasattr(user, 'cnpj')
+                }
+            })
+        else:
+            print("❌ SENHA INCORRETA")
+    else:
+        print("❌ USUÁRIO NÃO ENCONTRADO")
+
+    return jsonify({'success': False})
+
+
+@app.route('/debug-current-user')
+@login_required
+def debug_current_user():
+    """Mostra informações do usuário atual"""
+    user_info = {
+        'id': current_user.id,
+        'nome': current_user.nome,
+        'email': current_user.email,
+        'classe': current_user.__class__.__name__,
+        'tem_cnpj': hasattr(current_user, 'cnpj'),
+        'cnpj': getattr(current_user, 'cnpj', 'N/A'),
+        'is_authenticated': current_user.is_authenticated
+    }
+    print(f"🔍 CURRENT USER: {user_info}")
+    return jsonify(user_info)
+
+
+@app.route('/teste-login')
+def teste_login():
+    """Página de teste de login"""
+    return '''
+    <h1>Teste de Login</h1>
+    <form action="/debug-login" method="post">
+        <input type="email" name="email" placeholder="Email" required><br>
+        <input type="password" name="senha" placeholder="Senha" required><br>
+        <select name="tipo">
+            <option value="usuario">Usuário</option>
+            <option value="ong">ONG</option>
+        </select><br>
+        <button type="submit">Login Debug</button>
+    </form>
+    <p><a href="/debug-current-user">Ver usuário atual</a></p>
+    '''
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
