@@ -1,0 +1,16 @@
+pip install -r requirements.txt
+python app.py
+
+
+
+# 1. encoding
+$env:PYTHONIOENCODING="utf-8"
+
+# 2. Atualize o pip
+python -m pip install --upgrade pip
+
+# 3.
+pip install Flask==2.3.3 Flask-SQLAlchemy==3.0.5 Flask-Login==0.6.3 python-dotenv==1.0.0 Werkzeug==2.3.7 gunicorn==21.2.0
+
+# 4.psycopg2 (pega a compatível com seu Windows)
+pip install psycopg2-binary
