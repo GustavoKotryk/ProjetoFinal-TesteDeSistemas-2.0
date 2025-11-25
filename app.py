@@ -240,8 +240,30 @@ def dashboard():
 @app.route('/buscar-ongs')
 @login_required
 def buscar_ongs():
-    ongs = ONG.query.all()
-    return render_template('buscar_ongs.html', ongs=ongs)
+    try:
+        print("🎯 Acessando busca de ONGs...")
+
+        # Debug do usuário
+        print(f"👤 Usuário: {current_user.nome} (ID: {current_user.id})")
+
+        # Busca ONGs
+        ongs = ONG.query.all()
+        print(f"📊 ONGs encontradas: {len(ongs)}")
+
+        # Debug das ONGs
+        for ong in ongs:
+            print(f"   🏢 {ong.nome} - {ong.cidade}/{ong.estado}")
+
+        return render_template('buscar_ongs.html', ongs=ongs)
+
+    except Exception as e:
+        print(f"❌ ERRO NA BUSCA DE ONGs: {e}")
+        return f"""
+        <h1>Erro na Busca de ONGs</h1>
+        <p><strong>Erro:</strong> {e}</p>
+        <p><strong>Tipo:</strong> {type(e).__name__}</p>
+        <a href="/dashboard">Voltar ao Dashboard</a>
+        """, 500
 
 
 @app.route('/voluntariar/<int:ong_id>')
