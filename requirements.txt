@@ -5,3 +5,4 @@ psycopg2-binary==2.9.7
 python-dotenv==1.0.0
 Werkzeug==2.3.7
 gunicorn==21.2.0
+flask-mail==0.9.1

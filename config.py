@@ -14,3 +14,9 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'sqlite:///voluntariado.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'seu.email@gmail.com'  # ⚠️ MUDE PARA SEU EMAIL
+    MAIL_PASSWORD = 'sua-senha-de-app'
