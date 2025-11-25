@@ -253,18 +253,46 @@ def buscar_ongs():
         <a href="/dashboard">Voltar ao Dashboard</a>
         """, 500
 
+
 @app.route('/voluntariar/<int:ong_id>')
 @login_required
 def voluntariar(ong_id):
-    if hasattr(current_user, 'cnpj'):
-        flash('ONGs não podem se voluntariar!', 'error')
+    try:
+        if hasattr(current_user, 'cnpj'):
+            flash('ONGs não podem se voluntariar!', 'error')
+            return redirect(url_for('dashboard'))
+
+        # Verifica se a ONG existe
+        ong = ONG.query.get(ong_id)
+        if not ong:
+            flash('ONG não encontrada!', 'error')
+            return redirect(url_for('buscar_ongs'))
+
+        # Verifica se já existe candidatura
+        existing = Voluntariado.query.filter_by(
+            usuario_id=current_user.id,
+            ong_id=ong_id
+        ).first()
+
+        if existing:
+            flash('Você já se candidatou para esta ONG!', 'warning')
+            return redirect(url_for('buscar_ongs'))
+
+        # Cria nova candidatura
+        voluntariado = Voluntariado(
+            usuario_id=current_user.id,
+            ong_id=ong_id
+        )
+
+        db.session.add(voluntariado)
+        db.session.commit()
+
+        flash(f'Candidatura enviada para {ong.nome}!', 'success')
         return redirect(url_for('dashboard'))
 
-    voluntariado = Voluntariado(usuario_id=current_user.id, ong_id=ong_id)
-    db.session.add(voluntariado)
-    db.session.commit()
-    flash('Candidatura enviada!', 'success')
-    return redirect(url_for('dashboard'))
+    except Exception as e:
+        flash('Erro ao enviar candidatura!', 'error')
+        return redirect(url_for('buscar_ongs'))
 
 
 @app.route('/api/ongs')
