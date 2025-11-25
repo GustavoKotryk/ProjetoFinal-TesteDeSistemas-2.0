@@ -37,7 +37,7 @@ class Usuario(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def get_id(self):
-        return str(self.id)
+        return f"user_{self.id}"
 
     def is_authenticated(self):
         return True
@@ -69,7 +69,7 @@ class ONG(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def get_id(self):
-        return str(self.id)
+        return f"ong_{self.id}"
 
     def is_authenticated(self):
         return True
@@ -97,21 +97,26 @@ class Voluntariado(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    print(f"🔍 LOAD_USER chamado para ID: {user_id}")
+    print(f"🔍 LOAD_USER chamado com ID: {user_id}")
 
-    # Tenta carregar como Usuario
-    user = Usuario.query.get(int(user_id))
-    if user:
-        print(f"✅ Carregado como USUARIO: {user.nome}")
-        return user
+    # Verifica se tem prefixo
+    if user_id.startswith('user_'):
+        # É um usuário - remove o prefixo
+        id_num = int(user_id.replace('user_', ''))
+        user = Usuario.query.get(id_num)
+        if user:
+            print(f"✅ Carregado como USUARIO: {user.nome}")
+            return user
 
-    # Tenta carregar como ONG
-    ong = ONG.query.get(int(user_id))
-    if ong:
-        print(f"✅ Carregado como ONG: {ong.nome}")
-        return ong
+    elif user_id.startswith('ong_'):
+        # É uma ONG - remove o prefixo
+        id_num = int(user_id.replace('ong_', ''))
+        ong = ONG.query.get(id_num)
+        if ong:
+            print(f"✅ Carregado como ONG: {ong.nome}")
+            return ong
 
-    print("❌ Nenhum usuário encontrado com este ID")
+    print("❌ Nenhum usuário/ONG encontrado com este ID")
     return None
 
 
