@@ -84,7 +84,7 @@
                         <div class="text-sm text-gray-500">
                             <i class="fas fa-phone mr-1"></i>{{ ong.telefone or "Não informado" }}
                         </div>
-                        {% if not current_user.is_authenticated or not hasattr(current_user, 'cnpj') %}
+                        {% if not is_ong %}
                         <a href="{{ url_for('voluntariar', ong_id=ong.id) }}"
                            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm font-semibold">
                             <i class="fas fa-hand-holding-heart mr-1"></i>Quero Ajudar
@@ -126,23 +126,18 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializa o mapa
-    const map = L.map('map').setView([-23.5505, -46.6333], 10); // Centro em São Paulo
+    const map = L.map('map').setView([-23.5505, -46.6333], 10);
 
-    // Adiciona tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Busca dados das ONGs via API
     fetch('/api/ongs')
         .then(response => response.json())
         .then(ongs => {
             ongs.forEach(ong => {
-                // Cria marcador no mapa
                 const marker = L.marker([ong.lat, ong.lng]).addTo(map);
 
-                // Popup com informações
                 marker.bindPopup(`
                     <div class="p-2">
                         <h3 class="font-semibold text-lg">${ong.nome}</h3>
@@ -153,16 +148,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1 mb-1">${causa}</span>`
                             ).join('')}
                         </div>
-                        ${!currentUserIsONG ?
-                            `<a href="/voluntariar/${ong.id}" class="mt-3 inline-block bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition">
+                        {% if not is_ong %}
+                            <a href="/voluntariar/${ong.id}" class="mt-3 inline-block bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition">
                                 <i class="fas fa-hand-holding-heart mr-1"></i>Quero Ajudar
-                            </a>` : ''
-                        }
+                            </a>
+                        {% endif %}
                     </div>
                 `);
             });
 
-            // Ajusta o zoom para mostrar todos os marcadores
             if (ongs.length > 0) {
                 const group = new L.featureGroup(ongs.map(ong => L.marker([ong.lat, ong.lng])));
                 map.fitBounds(group.getBounds().pad(0.1));
@@ -179,9 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         });
-
-    // Variável global para verificar se usuário é ONG
-    const currentUserIsONG = {{ 'true' if current_user.is_authenticated and hasattr(current_user, 'cnpj') else 'false' }};
 });
 </script>
 {% endblock %}
