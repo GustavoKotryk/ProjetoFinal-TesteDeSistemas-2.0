@@ -8,75 +8,110 @@
     </h1>
 
     {% if is_ong %}
-        <!-- Dashboard ONG -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
-                <i class="fas fa-users mr-2"></i>Voluntários Interessados
-            </h2>
+    <!-- Dashboard ONG -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+            <i class="fas fa-users mr-2"></i>Voluntários Interessados
+        </h2>
 
-            {% if voluntarios %}
-            <div class="space-y-4">
-                {% for vol in voluntarios %}
-                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800">{{ vol.usuario.nome }}</h3>
-                            <p class="text-gray-600">
-                                <i class="fas fa-envelope mr-1"></i>{{ vol.usuario.email }}
-                            </p>
-                            <div class="mt-2">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                                    {{ vol.status }}
-                                </span>
-                            </div>
+        {% if voluntarios %}
+        <div class="space-y-4">
+            {% for vol in voluntarios %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">{{ vol.usuario.nome }}</h3>
+                        <p class="text-gray-600">
+                            <i class="fas fa-envelope mr-1"></i>{{ vol.usuario.email }}
+                        </p>
+                        <p class="text-gray-600">
+                            <i class="fas fa-phone mr-1"></i>{{ vol.usuario.telefone or 'Não informado' }}
+                        </p>
+                        <p class="text-gray-600">
+                            <i class="fas fa-map-marker-alt mr-1"></i>{{ vol.usuario.cidade }}
+                        </p>
+                        <p class="text-gray-600">
+                            <i class="fas fa-star mr-1"></i>{{ vol.usuario.habilidades or 'Habilidades não informadas' }}
+                        </p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                {% if vol.status == 'aceito' %}bg-green-100 text-green-800
+                                {% elif vol.status == 'recusado' %}bg-red-100 text-red-800
+                                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ vol.status or 'pendente' }}
+                            </span>
                         </div>
                     </div>
+
+                    {% if not vol.status or vol.status == 'pendente' %}
+                    <div class="flex space-x-2 ml-4">
+                        <a href="{{ url_for('aceitar_voluntario', voluntariado_id=vol.id) }}"
+                           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center"
+                           onclick="return confirm('Tem certeza que deseja ACEITAR {{ vol.usuario.nome }} como voluntário?')">
+                            <i class="fas fa-check mr-2"></i>Aceitar
+                        </a>
+                        <a href="{{ url_for('recusar_voluntario', voluntariado_id=vol.id) }}"
+                           class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center"
+                           onclick="return confirm('Tem certeza que deseja RECUSAR a candidatura de {{ vol.usuario.nome }}?')">
+                            <i class="fas fa-times mr-2"></i>Recusar
+                        </a>
+                    </div>
+                    {% endif %}
+
                 </div>
-                {% endfor %}
+                <div class="mt-2 text-sm text-gray-500">
+                    <i class="far fa-clock mr-1"></i>Candidatou-se em: {{ vol.data_inscricao.strftime('%d/%m/%Y às %H:%M') }}
+                </div>
             </div>
-            {% else %}
-            <div class="text-center py-8">
-                <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
-                <p class="text-gray-500 text-lg">Nenhum voluntário se candidatou ainda.</p>
-            </div>
-            {% endif %}
+            {% endfor %}
         </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
+            <p class="text-gray-500 text-lg">Nenhum voluntário se candidatou ainda.</p>
+            <p class="text-gray-400 text-sm mt-2">Quando voluntários se interessarem pela sua ONG, aparecerão aqui.</p>
+        </div>
+        {% endif %}
+    </div>
     {% else %}
-        <!-- Dashboard Voluntário -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
-                <i class="fas fa-hands-helping mr-2"></i>Minhas Candidaturas
-            </h2>
+    <!-- Dashboard Voluntário -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+            <i class="fas fa-hands-helping mr-2"></i>Minhas Candidaturas
+        </h2>
 
-            {% if voluntariados %}
-            <div class="space-y-4">
-                {% for vol in voluntariados %}
-                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800">{{ vol.ong.nome }}</h3>
-                            <p class="text-gray-600">{{ vol.ong.cidade }}/{{ vol.ong.estado }}</p>
-                            <div class="mt-2">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                                    {{ vol.status }}
-                                </span>
-                            </div>
+        {% if voluntariados %}
+        <div class="space-y-4">
+            {% for vol in voluntariados %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">{{ vol.ong.nome }}</h3>
+                        <p class="text-gray-600">{{ vol.ong.cidade }}/{{ vol.ong.estado }}</p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                {% if vol.status == 'aceito' %}bg-green-100 text-green-800
+                                {% elif vol.status == 'recusado' %}bg-red-100 text-red-800
+                                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ vol.status or 'pendente' }}
+                            </span>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-            {% else %}
-            <div class="text-center py-8">
-                <i class="fas fa-search text-gray-300 text-6xl mb-4"></i>
-                <p class="text-gray-500 text-lg mb-4">Você ainda não se candidatou a nenhuma ONG.</p>
-                <a href="{{ url_for('buscar_ongs') }}"
-                   class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
-                    Buscar ONGs
-                </a>
-            </div>
-            {% endif %}
+            {% endfor %}
         </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-search text-gray-300 text-6xl mb-4"></i>
+            <p class="text-gray-500 text-lg mb-4">Você ainda não se candidatou a nenhuma ONG.</p>
+            <a href="{{ url_for('buscar_ongs') }}"
+               class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                Buscar ONGs
+            </a>
+        </div>
+        {% endif %}
+    </div>
     {% endif %}
 </div>
 {% endblock %}
