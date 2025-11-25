@@ -6,8 +6,27 @@
     <title>Rede Voluntariado - Conectando ONGs e Voluntários</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* REMOVE TODOS OS ESPAÇOS EM BRANCO */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        main {
+            flex: 1;
+        }
+        footer {
+            margin-top: 0 !important;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50">
     <!-- Header -->
     <nav class="bg-green-600 text-white shadow-lg">
         <div class="container mx-auto px-4">
@@ -23,6 +42,9 @@
                         <a href="{{ url_for('dashboard') }}" class="hover:text-green-200 transition">
                             <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
                         </a>
+                        <a href="{{ url_for('buscar_ongs') }}" class="hover:text-green-200 transition">
+                            <i class="fas fa-search mr-1"></i>Buscar ONGs
+                        </a>
                         <a href="{{ url_for('logout') }}" class="hover:text-green-200 transition">
                             <i class="fas fa-sign-out-alt mr-1"></i>Sair
                         </a>
@@ -30,9 +52,19 @@
                         <a href="{{ url_for('login') }}" class="hover:text-green-200 transition">
                             <i class="fas fa-sign-in-alt mr-1"></i>Entrar
                         </a>
-                        <a href="{{ url_for('cadastro_usuario') }}" class="bg-green-700 px-4 py-2 rounded hover:bg-green-800 transition">
-                            <i class="fas fa-user-plus mr-1"></i>Cadastrar
-                        </a>
+                        <div class="relative group">
+                            <button class="bg-green-700 px-4 py-2 rounded hover:bg-green-800 transition">
+                                <i class="fas fa-user-plus mr-1"></i>Cadastrar
+                            </button>
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden group-hover:block">
+                                <a href="{{ url_for('cadastro_usuario') }}" class="block px-4 py-2 text-gray-800 hover:bg-green-50">
+                                    <i class="fas fa-user mr-2"></i>Como Voluntário
+                                </a>
+                                <a href="{{ url_for('cadastro_ong') }}" class="block px-4 py-2 text-gray-800 hover:bg-green-50">
+                                    <i class="fas fa-building mr-2"></i>Como ONG
+                                </a>
+                            </div>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -58,8 +90,8 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white">
-        <div class="container mx-auto px-4 py-8">
+    <footer class="bg-gray-800 text-white mt-0">
+        <div class="container mx-auto px-4 py-6">
             <div class="text-center">
                 <p>&copy; 2025 Rede Voluntariado. Conectando pessoas que querem fazer a diferença.</p>
             </div>
