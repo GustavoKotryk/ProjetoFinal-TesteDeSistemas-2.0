@@ -102,8 +102,42 @@ def load_user(user_id):
     return ONG.query.get(int(user_id))
 
 
-# ROTAS (mantém as mesmas do anterior, mas vou colocar só as essenciais)
+# ⚠️ **CRIA AS TABELAS AUTOMATICAMENTE NO RENDER** ⚠️
+with app.app_context():
+    try:
+        print("🔄 Verificando/Criando tabelas no banco...")
+        db.create_all()
+        print("✅ Tabelas prontas!")
 
+        # Verifica se tem dados de exemplo
+        if not Usuario.query.first():
+            print("📝 Criando dados de exemplo...")
+            usuario = Usuario(
+                nome="João Exemplo",
+                email="joao@exemplo.com",
+                senha=generate_password_hash("123456"),
+                cidade="São Paulo"
+            )
+            db.session.add(usuario)
+
+            ong = ONG(
+                nome="ONG Teste",
+                email="ong@exemplo.com",
+                senha=generate_password_hash("123456"),
+                cidade="São Paulo",
+                estado="SP",
+                latitude=-23.5505,
+                longitude=-46.6333
+            )
+            db.session.add(ong)
+            db.session.commit()
+            print("✅ Dados de exemplo criados!")
+
+    except Exception as e:
+        print(f"❌ Erro ao criar tabelas: {e}")
+
+
+# ROTAS
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -173,6 +207,7 @@ def login():
 
         if user and check_password_hash(user.senha, senha):
             login_user(user)
+            flash('Login realizado com sucesso!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Email ou senha incorretos!', 'error')
@@ -180,15 +215,26 @@ def login():
     return render_template('login.html')
 
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Logout realizado com sucesso!', 'success')
+    return redirect(url_for('index'))
+
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    if hasattr(current_user, 'cnpj'):
-        voluntarios = Voluntariado.query.filter_by(ong_id=current_user.id).all()
-        return render_template('dashboard.html', voluntarios=voluntarios, is_ong=True)
-    else:
-        voluntariados = Voluntariado.query.filter_by(usuario_id=current_user.id).all()
-        return render_template('dashboard.html', voluntariados=voluntariados, is_ong=False)
+    try:
+        if hasattr(current_user, 'cnpj'):
+            voluntarios = Voluntariado.query.filter_by(ong_id=current_user.id).all()
+            return render_template('dashboard.html', voluntarios=voluntarios, is_ong=True)
+        else:
+            voluntariados = Voluntariado.query.filter_by(usuario_id=current_user.id).all()
+            return render_template('dashboard.html', voluntariados=voluntariados, is_ong=False)
+    except Exception as e:
+        return f"<h1>Erro no Dashboard</h1><p>{e}</p>"
 
 
 @app.route('/buscar-ongs')
@@ -230,35 +276,23 @@ def api_ongs():
     return jsonify(ongs_data)
 
 
-# COMANDO PARA CRIAR BANCO
-@app.cli.command("init-db")
-def init_db():
-    db.create_all()
+# Rota para forçar criação de tabelas
+@app.route('/create-tables')
+def create_tables():
+    try:
+        db.create_all()
+        return """
+        <h1>✅ Tabelas criadas com sucesso!</h1>
+        <p>As tabelas foram criadas no PostgreSQL do Render.</p>
+        <p><a href="/">Voltar para Home</a></p>
+        """
+    except Exception as e:
+        return f"""
+        <h1>❌ Erro ao criar tabelas</h1>
+        <p><strong>Erro:</strong> {e}</p>
+        <p><a href="/">Voltar para Home</a></p>
+        """
 
-    # Dados de exemplo
-    if not Usuario.query.first():
-        usuario = Usuario(
-            nome="João Exemplo",
-            email="joao@exemplo.com",
-            senha=generate_password_hash("123456"),
-            cidade="São Paulo"
-        )
-        db.session.add(usuario)
-
-        ong = ONG(
-            nome="ONG Teste",
-            email="ong@exemplo.com",
-            senha=generate_password_hash("123456"),
-            cidade="São Paulo",
-            estado="SP",
-            latitude=-23.5505,
-            longitude=-46.6333
-        )
-        db.session.add(ong)
-        db.session.commit()
-        print("✅ Banco criado com dados de exemplo!")
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(host='0.0.0.0', port=5000, debug=False)
