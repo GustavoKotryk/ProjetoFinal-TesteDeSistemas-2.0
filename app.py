@@ -4,13 +4,13 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import json
-# from flask_mail import Mail, Message
+from flask_mail import Mail, Message
 import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sua-chave-super-secreta-aqui'
 
-# Configuração do Banco - SIMPLIFICADA
+# Configuração do Banco
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///voluntariado.db')
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
@@ -18,12 +18,20 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'apikey')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'gustavokotryk@gmail.com')
+
+
 # Inicializações
 db = SQLAlchemy(app)
+mail = Mail(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-
 
 # MODELOS DIRETO NO APP.PY (pra evitar import circular)
 class Usuario(db.Model):
@@ -368,16 +376,26 @@ def create_tables():
         """
 
 
-# 🔽🔽🔽 ADICIONE ESTA FUNÇÃO AQUI 🔽🔽🔽
 def enviar_email(destinatario, assunto, corpo):
-    # Versão SIMULADA - só mostra no log (funciona no Render)
-    print("=" * 60)
-    print(f"📧 EMAIL SIMULADO - PARA TESTE")
-    print(f"👤 Destinatário: {destinatario}")
-    print(f"📋 Assunto: {assunto}")
-    print(f"📝 Mensagem: {corpo}")
-    print("=" * 60)
-    return True  # Sempre retorna sucesso para teste
+    try:
+        msg = Message(
+            assunto,
+            recipients=[destinatario],
+            html=corpo
+        )
+        mail.send(msg)
+        print(f"✅ EMAIL ENVIADO COM SUCESSO para: {destinatario}")
+        return True
+    except Exception as e:
+        print(f"❌ ERRO AO ENVIAR EMAIL: {e}")
+        # ⚠️ MODE DE FALLBACK: Se der erro, pelo menos mostra no log
+        print("=" * 60)
+        print(f"📧 CONTEÚDO DO EMAIL (NÃO ENVIADO):")
+        print(f"👤 Destinatário: {destinatario}")
+        print(f"📋 Assunto: {assunto}")
+        print(f"📝 Mensagem: {corpo}")
+        print("=" * 60)
+        return False
 
 
 # 🔽🔽🔽 ADICIONE ESTAS 2 ROTAS AQUI 🔽🔽🔽
