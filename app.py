@@ -6,6 +6,7 @@ from datetime import datetime
 import json
 from flask_mail import Mail, Message
 import os
+import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sua-chave-super-secreta-aqui'
@@ -378,6 +379,8 @@ def create_tables():
 
 def enviar_email(destinatario, assunto, corpo):
     try:
+        print(f"🔄 Tentando enviar email para: {destinatario}")
+
         msg = Message(
             assunto,
             recipients=[destinatario],
@@ -386,19 +389,20 @@ def enviar_email(destinatario, assunto, corpo):
         mail.send(msg)
         print(f"✅ EMAIL ENVIADO COM SUCESSO para: {destinatario}")
         return True
+
     except Exception as e:
         print(f"❌ ERRO AO ENVIAR EMAIL: {e}")
-        # ⚠️ MODE DE FALLBACK: Se der erro, pelo menos mostra no log
-        print("=" * 60)
-        print(f"📧 CONTEÚDO DO EMAIL (NÃO ENVIADO):")
-        print(f"👤 Destinatário: {destinatario}")
-        print(f"📋 Assunto: {assunto}")
-        print(f"📝 Mensagem: {corpo}")
-        print("=" * 60)
+
+        # Modo de fallback - mostra detalhes no log
+        print("🔍 DETALHES DO EMAIL QUE FALHOU:")
+        print(f"   De: {app.config['MAIL_DEFAULT_SENDER']}")
+        print(f"   Para: {destinatario}")
+        print(f"   Assunto: {assunto}")
+        print(f"   Servidor: {app.config['MAIL_SERVER']}:{app.config['MAIL_PORT']}")
+
         return False
 
 
-# 🔽🔽🔽 ADICIONE ESTAS 2 ROTAS AQUI 🔽🔽🔽
 @app.route('/aceitar-voluntario/<int:voluntariado_id>')
 @login_required
 def aceitar_voluntario(voluntariado_id):
@@ -415,25 +419,27 @@ def aceitar_voluntario(voluntariado_id):
         voluntariado.status = 'aceito'
         db.session.commit()
 
-        # 📧 EMAIL DE ACEITE (SIMULADO)
         assunto = "🎉 Parabéns! Você foi aceito como voluntário!"
         corpo = f"""
         <h2>Parabéns, {voluntariado.usuario.nome}!</h2>
         <p>Você foi <strong>aceito</strong> como voluntário na <strong>{current_user.nome}</strong>!</p>
         <p><strong>Próximos passos:</strong></p>
         <ul>
-            <li>Entre em contato com a ONG: {current_user.telefone}</li>
+            <li>Entre em contato com a ONG: {current_user.telefone or 'A combinar'}</li>
             <li>Email da ONG: {current_user.email}</li>
-            <li>Endereço: {current_user.endereco}, {current_user.cidade}</li>
+            <li>Endereço: {current_user.endereco or 'A combinar'}, {current_user.cidade}</li>
         </ul>
         <p>Seja bem-vindo à nossa equipe! 🌟</p>
         """
 
-        if enviar_email(voluntariado.usuario.email, assunto, corpo):
-            flash('Voluntário aceito e notificado por email!', 'success')
-        else:
-            flash('Voluntário aceito, mas email não enviado.', 'warning')
+        # ⚠️ ENVIA EMAIL EM BACKGROUND - NÃO TRAVA A PÁGINA
+        thread = threading.Thread(
+            target=enviar_email,
+            args=(voluntariado.usuario.email, assunto, corpo)
+        )
+        thread.start()
 
+        flash('Voluntário aceito! Notificação sendo enviada.', 'success')
         return redirect(url_for('dashboard'))
 
     except Exception as e:
@@ -457,7 +463,7 @@ def recusar_voluntario(voluntariado_id):
         voluntariado.status = 'recusado'
         db.session.commit()
 
-        # 📧 EMAIL DE RECUSA (SIMULADO)
+        # EMAIL EM BACKGROUND (não trava a página)
         assunto = "Atualização sobre sua candidatura como voluntário"
         corpo = f"""
         <h2>Olá, {voluntariado.usuario.nome}!</h2>
@@ -467,11 +473,14 @@ def recusar_voluntario(voluntariado_id):
         <p>Atenciosamente,<br>Equipe {current_user.nome}</p>
         """
 
-        if enviar_email(voluntariado.usuario.email, assunto, corpo):
-            flash('Voluntário recusado e notificado por email!', 'info')
-        else:
-            flash('Voluntário recusado, mas email não enviado.', 'warning')
+        # ⚠️ ENVIA EMAIL EM BACKGROUND - NÃO TRAVA A PÁGINA
+        thread = threading.Thread(
+            target=enviar_email,
+            args=(voluntariado.usuario.email, assunto, corpo)
+        )
+        thread.start()
 
+        flash('Voluntário recusado! Notificação sendo enviada.', 'info')
         return redirect(url_for('dashboard'))
 
     except Exception as e:
