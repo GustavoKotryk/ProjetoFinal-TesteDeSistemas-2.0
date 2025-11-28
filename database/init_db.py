@@ -42,7 +42,7 @@ def init_database():
             db.session.commit()
             print("✅ Dados de exemplo criados!")
 
-        print("🎉 Banco de dados inicializado com sucesso!")
+        print("Banco de dados inicializado com sucesso!")
 
 
 if __name__ == '__main__':

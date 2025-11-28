@@ -14,3 +14,8 @@ pip install Flask==2.3.3 Flask-SQLAlchemy==3.0.5 Flask-Login==0.6.3 python-doten
 
 # 4.psycopg2 (pega a compatível com seu Windows)
 pip install psycopg2-binary
+
+# test
+cd tests
+robot tests/fluxo_voluntario.robot
+

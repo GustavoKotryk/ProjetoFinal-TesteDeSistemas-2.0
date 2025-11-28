@@ -6,3 +6,8 @@ python-dotenv==1.0.0
 Werkzeug==2.3.7
 gunicorn==21.2.0
 flask-mail==0.9.1
+
+robotframework==6.1.1
+robotframework-seleniumlibrary==6.1.0
+selenium==4.15.0
+webdrivermanager==0.10.0

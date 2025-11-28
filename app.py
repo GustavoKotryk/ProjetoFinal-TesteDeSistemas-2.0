@@ -97,7 +97,7 @@ class Voluntariado(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    print(f"🔍 LOAD_USER chamado com ID: {user_id}")
+    print(f"LOAD_USER chamado com ID: {user_id}")
 
     # Verifica se tem prefixo
     if user_id.startswith('user_'):
@@ -105,7 +105,7 @@ def load_user(user_id):
         id_num = int(user_id.replace('user_', ''))
         user = Usuario.query.get(id_num)
         if user:
-            print(f"✅ Carregado como USUARIO: {user.nome}")
+            print(f"Carregado como USUARIO: {user.nome}")
             return user
 
     elif user_id.startswith('ong_'):
@@ -113,23 +113,23 @@ def load_user(user_id):
         id_num = int(user_id.replace('ong_', ''))
         ong = ONG.query.get(id_num)
         if ong:
-            print(f"✅ Carregado como ONG: {ong.nome}")
+            print(f"Carregado como ONG: {ong.nome}")
             return ong
 
-    print("❌ Nenhum usuário/ONG encontrado com este ID")
+    print("Nenhum usuário/ONG encontrado com este ID")
     return None
 
 
-# ⚠️ **CRIA AS TABELAS AUTOMATICAMENTE NO RENDER** ⚠️
+#  **CRIA AS TABELAS AUTOMATICAMENTE NO RENDER**
 with app.app_context():
     try:
-        print("🔄 Verificando/Criando tabelas no banco...")
+        print("Verificando/Criando tabelas no banco...")
         db.create_all()
-        print("✅ Tabelas prontas!")
+        print("Tabelas prontas!")
 
         # Verifica se tem dados de exemplo
         if not Usuario.query.first():
-            print("📝 Criando dados de exemplo...")
+            print("Criando dados de exemplo...")
             usuario = Usuario(
                 nome="João Exemplo",
                 email="joao@exemplo.com",
@@ -149,10 +149,10 @@ with app.app_context():
             )
             db.session.add(ong)
             db.session.commit()
-            print("✅ Dados de exemplo criados!")
+            print("Dados de exemplo criados!")
 
     except Exception as e:
-        print(f"❌ Erro ao criar tabelas: {e}")
+        print(f"Erro ao criar tabelas: {e}")
 
 
 # ROTAS
@@ -220,7 +220,7 @@ def login():
         senha = request.form['senha']
         tipo = request.form['tipo']
 
-        print(f"🔍 LOGIN ORIGINAL: Email={email}, Tipo={tipo}")
+        print(f"LOGIN ORIGINAL: Email={email}, Tipo={tipo}")
 
         if tipo == 'usuario':
             user = Usuario.query.filter_by(email=email).first()
@@ -230,18 +230,18 @@ def login():
             user_type = "ONG"
 
         if user:
-            print(f"✅ {user_type} ENCONTRADO: {user.nome}")
+            print(f"{user_type} ENCONTRADO: {user.nome}")
             print(f"   ID: {user.id}, Classe: {user.__class__.__name__}")
 
             if check_password_hash(user.senha, senha):
                 login_user(user)
-                print(f"🎯 LOGIN REALIZADO: {user.nome} como {user_type}")
+                print(f"LOGIN REALIZADO: {user.nome} como {user_type}")
                 flash('Login realizado com sucesso!', 'success')
                 return redirect(url_for('dashboard'))
             else:
-                print("❌ SENHA INCORRETA")
+                print("SENHA INCORRETA")
         else:
-            print(f"❌ {user_type} NÃO ENCONTRADO")
+            print(f"{user_type} NÃO ENCONTRADO")
 
         flash('Email ou senha incorretos!', 'error')
 
@@ -270,7 +270,7 @@ def dashboard():
             voluntariados = Voluntariado.query.filter_by(usuario_id=current_user.id).all()
             return render_template('dashboard.html', voluntariados=voluntariados, is_ong=False)
     except Exception as e:
-        print(f"❌ ERRO NO DASHBOARD: {e}")
+        print(f"ERRO NO DASHBOARD: {e}")
         return f"<h1>Erro no Dashboard</h1><p>{e}</p>"
 
 
@@ -282,7 +282,7 @@ def buscar_ongs():
         is_ong = hasattr(current_user, 'cnpj')
         return render_template('buscar_ongs.html', ongs=ongs, is_ong=is_ong)
     except Exception as e:
-        print(f"❌ ERRO NA BUSCA DE ONGs: {e}")
+        print(f"ERRO NA BUSCA DE ONGs: {e}")
         return f"""
         <h1>Erro na Busca de ONGs</h1>
         <p><strong>Erro:</strong> {e}</p>
@@ -356,31 +356,29 @@ def create_tables():
     try:
         db.create_all()
         return """
-        <h1>✅ Tabelas criadas com sucesso!</h1>
+        <h1>Tabelas criadas com sucesso!</h1>
         <p>As tabelas foram criadas no PostgreSQL do Render.</p>
         <p><a href="/">Voltar para Home</a></p>
         """
     except Exception as e:
         return f"""
-        <h1>❌ Erro ao criar tabelas</h1>
+        <h1>Erro ao criar tabelas</h1>
         <p><strong>Erro:</strong> {e}</p>
         <p><a href="/">Voltar para Home</a></p>
         """
 
 
-# 🔽🔽🔽 ADICIONE ESTA FUNÇÃO AQUI 🔽🔽🔽
 def enviar_email(destinatario, assunto, corpo):
     # Versão SIMULADA - só mostra no log (funciona no Render)
     print("=" * 60)
-    print(f"📧 EMAIL SIMULADO - PARA TESTE")
-    print(f"👤 Destinatário: {destinatario}")
-    print(f"📋 Assunto: {assunto}")
-    print(f"📝 Mensagem: {corpo}")
+    print(f"EMAIL SIMULADO - PARA TESTE")
+    print(f"Destinatário: {destinatario}")
+    print(f"Assunto: {assunto}")
+    print(f"Mensagem: {corpo}")
     print("=" * 60)
-    return True  # Sempre retorna sucesso para teste
+    return True
 
 
-# 🔽🔽🔽 ADICIONE ESTAS 2 ROTAS AQUI 🔽🔽🔽
 @app.route('/aceitar-voluntario/<int:voluntariado_id>')
 @login_required
 def aceitar_voluntario(voluntariado_id):
@@ -397,8 +395,8 @@ def aceitar_voluntario(voluntariado_id):
         voluntariado.status = 'aceito'
         db.session.commit()
 
-        # 📧 EMAIL DE ACEITE (SIMULADO)
-        assunto = "🎉 Parabéns! Você foi aceito como voluntário!"
+        # EMAIL DE ACEITE
+        assunto = "Parabéns! Você foi aceito como voluntário!"
         corpo = f"""
         <h2>Parabéns, {voluntariado.usuario.nome}!</h2>
         <p>Você foi <strong>aceito</strong> como voluntário na <strong>{current_user.nome}</strong>!</p>
@@ -408,7 +406,7 @@ def aceitar_voluntario(voluntariado_id):
             <li>Email da ONG: {current_user.email}</li>
             <li>Endereço: {current_user.endereco}, {current_user.cidade}</li>
         </ul>
-        <p>Seja bem-vindo à nossa equipe! 🌟</p>
+        <p>Seja bem-vindo à nossa equipe!</p>
         """
 
         if enviar_email(voluntariado.usuario.email, assunto, corpo):
@@ -439,13 +437,13 @@ def recusar_voluntario(voluntariado_id):
         voluntariado.status = 'recusado'
         db.session.commit()
 
-        # 📧 EMAIL DE RECUSA (SIMULADO)
+        # EMAIL DE RECUSA
         assunto = "Atualização sobre sua candidatura como voluntário"
         corpo = f"""
         <h2>Olá, {voluntariado.usuario.nome}!</h2>
         <p>Obrigado pelo seu interesse em ser voluntário na <strong>{current_user.nome}</strong>.</p>
         <p>Infelizmente, no momento <strong>não estamos precisando de pessoas com suas habilidades específicas</strong>.</p>
-        <p>Mas não desanime! Continue buscando oportunidades - outras ONGs certamente precisarão do seu talento! 💪</p>
+        <p>Mas não desanime! Continue buscando oportunidades - outras ONGs certamente precisarão do seu talento!</p>
         <p>Atenciosamente,<br>Equipe {current_user.nome}</p>
         """
 
@@ -461,7 +459,6 @@ def recusar_voluntario(voluntariado_id):
         return redirect(url_for('dashboard'))
 
 
-# 🔽🔽🔽 ADICIONE ESTAS ROTAS DE DEBUG 🔽🔽🔽
 
 @app.route('/debug-login', methods=['POST'])
 def debug_login():
@@ -470,7 +467,7 @@ def debug_login():
     senha = request.form['senha']
     tipo = request.form['tipo']
 
-    print(f"🔍 DEBUG LOGIN: Email={email}, Tipo={tipo}")
+    print(f"DEBUG LOGIN: Email={email}, Tipo={tipo}")
 
     if tipo == 'usuario':
         user = Usuario.query.filter_by(email=email).first()
@@ -480,12 +477,12 @@ def debug_login():
         user_type = "ONG"
 
     if user:
-        print(f"✅ USUÁRIO ENCONTRADO: {user.nome} (Tipo: {user_type})")
+        print(f"USUÁRIO ENCONTRADO: {user.nome} (Tipo: {user_type})")
         print(f"   ID: {user.id}, Tem CNPJ: {hasattr(user, 'cnpj')}")
 
         if check_password_hash(user.senha, senha):
             login_user(user)
-            print(f"🎯 LOGIN BEM SUCEDIDO: {user.nome}")
+            print(f"LOGIN BEM SUCEDIDO: {user.nome}")
             return jsonify({
                 'success': True,
                 'user': {
@@ -496,9 +493,9 @@ def debug_login():
                 }
             })
         else:
-            print("❌ SENHA INCORRETA")
+            print("SENHA INCORRETA")
     else:
-        print("❌ USUÁRIO NÃO ENCONTRADO")
+        print("USUÁRIO NÃO ENCONTRADO")
 
     return jsonify({'success': False})
 
@@ -516,7 +513,7 @@ def debug_current_user():
         'cnpj': getattr(current_user, 'cnpj', 'N/A'),
         'is_authenticated': current_user.is_authenticated
     }
-    print(f"🔍 CURRENT USER: {user_info}")
+    print(f"CURRENT USER: {user_info}")
     return jsonify(user_info)
 
 
