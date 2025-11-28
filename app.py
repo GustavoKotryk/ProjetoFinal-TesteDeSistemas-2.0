@@ -4,9 +4,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import json
-from flask_mail import Mail, Message
 import os
-import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sua-chave-super-secreta-aqui'
@@ -19,17 +17,8 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'apikey')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'gustavokotryk@gmail.com')
-
-
 # Inicializações
 db = SQLAlchemy(app)
-mail = Mail(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -377,43 +366,6 @@ def create_tables():
         """
 
 
-def enviar_email(destinatario, assunto, corpo):
-<<<<<<< HEAD
-    # Versão SIMULADA - só mostra no log (funciona no Render)
-    print("=" * 60)
-    print(f"EMAIL SIMULADO - PARA TESTE")
-    print(f"Destinatário: {destinatario}")
-    print(f"Assunto: {assunto}")
-    print(f"Mensagem: {corpo}")
-    print("=" * 60)
-    return True
-=======
-    try:
-        print(f"🔄 Tentando enviar email para: {destinatario}")
-
-        msg = Message(
-            assunto,
-            recipients=[destinatario],
-            html=corpo
-        )
-        mail.send(msg)
-        print(f"✅ EMAIL ENVIADO COM SUCESSO para: {destinatario}")
-        return True
-
-    except Exception as e:
-        print(f"❌ ERRO AO ENVIAR EMAIL: {e}")
-
-        # Modo de fallback - mostra detalhes no log
-        print("🔍 DETALHES DO EMAIL QUE FALHOU:")
-        print(f"   De: {app.config['MAIL_DEFAULT_SENDER']}")
-        print(f"   Para: {destinatario}")
-        print(f"   Assunto: {assunto}")
-        print(f"   Servidor: {app.config['MAIL_SERVER']}:{app.config['MAIL_PORT']}")
-
-        return False
->>>>>>> 479356f1e3e42367f3ce00f04786a220df5aec80
-
-
 @app.route('/aceitar-voluntario/<int:voluntariado_id>')
 @login_required
 def aceitar_voluntario(voluntariado_id):
@@ -430,32 +382,11 @@ def aceitar_voluntario(voluntariado_id):
         voluntariado.status = 'aceito'
         db.session.commit()
 
-<<<<<<< HEAD
-        # EMAIL DE ACEITE
-        assunto = "Parabéns! Você foi aceito como voluntário!"
-=======
-        assunto = "🎉 Parabéns! Você foi aceito como voluntário!"
->>>>>>> 479356f1e3e42367f3ce00f04786a220df5aec80
-        corpo = f"""
-        <h2>Parabéns, {voluntariado.usuario.nome}!</h2>
-        <p>Você foi <strong>aceito</strong> como voluntário na <strong>{current_user.nome}</strong>!</p>
-        <p><strong>Próximos passos:</strong></p>
-        <ul>
-            <li>Entre em contato com a ONG: {current_user.telefone or 'A combinar'}</li>
-            <li>Email da ONG: {current_user.email}</li>
-            <li>Endereço: {current_user.endereco or 'A combinar'}, {current_user.cidade}</li>
-        </ul>
-        <p>Seja bem-vindo à nossa equipe!</p>
-        """
+        # Simula notificação (sem email)
+        print(f"📧 [SIMULAÇÃO] Voluntário {voluntariado.usuario.nome} aceito pela ONG {current_user.nome}")
+        print(f"📧 [SIMULAÇÃO] Email seria enviado para: {voluntariado.usuario.email}")
 
-        # ⚠️ ENVIA EMAIL EM BACKGROUND - NÃO TRAVA A PÁGINA
-        thread = threading.Thread(
-            target=enviar_email,
-            args=(voluntariado.usuario.email, assunto, corpo)
-        )
-        thread.start()
-
-        flash('Voluntário aceito! Notificação sendo enviada.', 'success')
+        flash('Voluntário aceito com sucesso!', 'success')
         return redirect(url_for('dashboard'))
 
     except Exception as e:
@@ -479,34 +410,16 @@ def recusar_voluntario(voluntariado_id):
         voluntariado.status = 'recusado'
         db.session.commit()
 
-<<<<<<< HEAD
-        # EMAIL DE RECUSA
-=======
-        # EMAIL EM BACKGROUND (não trava a página)
->>>>>>> 479356f1e3e42367f3ce00f04786a220df5aec80
-        assunto = "Atualização sobre sua candidatura como voluntário"
-        corpo = f"""
-        <h2>Olá, {voluntariado.usuario.nome}!</h2>
-        <p>Obrigado pelo seu interesse em ser voluntário na <strong>{current_user.nome}</strong>.</p>
-        <p>Infelizmente, no momento <strong>não estamos precisando de pessoas com suas habilidades específicas</strong>.</p>
-        <p>Mas não desanime! Continue buscando oportunidades - outras ONGs certamente precisarão do seu talento!</p>
-        <p>Atenciosamente,<br>Equipe {current_user.nome}</p>
-        """
+        # Simula notificação (sem email)
+        print(f"📧 [SIMULAÇÃO] Voluntário {voluntariado.usuario.nome} recusado pela ONG {current_user.nome}")
+        print(f"📧 [SIMULAÇÃO] Email seria enviado para: {voluntariado.usuario.email}")
 
-        # ⚠️ ENVIA EMAIL EM BACKGROUND - NÃO TRAVA A PÁGINA
-        thread = threading.Thread(
-            target=enviar_email,
-            args=(voluntariado.usuario.email, assunto, corpo)
-        )
-        thread.start()
-
-        flash('Voluntário recusado! Notificação sendo enviada.', 'info')
+        flash('Voluntário recusado com sucesso!', 'info')
         return redirect(url_for('dashboard'))
 
     except Exception as e:
         flash(f'Erro ao recusar voluntário: {e}', 'error')
         return redirect(url_for('dashboard'))
-
 
 
 @app.route('/debug-login', methods=['POST'])
