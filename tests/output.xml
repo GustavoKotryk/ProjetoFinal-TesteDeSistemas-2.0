@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.3.2 (Python 3.13.3 on win32)" generated="2025-11-28T15:37:31.162345" rpa="false" schemaversion="5">
+<suite id="s1" name="Fluxo Voluntario" source="C:\Users\gustavo_kotryk\PycharmProjects\voluntariado\tests\tests\fluxo_voluntario.robot">
+<kw name="Abrir Navegador" type="SETUP">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:31.333046" level="INFO">Opening browser 'chrome' to base url 'https://projetofinal-testedesistemas-2-0.onrender.com'.</msg>
+<arg>${URL}</arg>
+<arg>${BROWSER}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2025-11-28T15:37:31.332877" elapsed="15.509418"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2025-11-28T15:37:46.842519" elapsed="0.022414"/>
+</kw>
+<kw name="Set Selenium Implicit Wait" owner="SeleniumLibrary">
+<arg>10 seconds</arg>
+<doc>Sets the implicit wait value used by Selenium.</doc>
+<status status="PASS" start="2025-11-28T15:37:46.865073" elapsed="0.000901"/>
+</kw>
+<status status="PASS" start="2025-11-28T15:37:31.332496" elapsed="15.533600"/>
+</kw>
+<test id="s1-t1" name="Teste Carregamento Página Inicial" line="12">
+<kw name="Page Should Contain" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:46.899108" level="INFO">Current page contains text 'Conectando ONGs e Voluntários'.</msg>
+<arg>Conectando ONGs e Voluntários</arg>
+<doc>Verifies that current page contains ``text``.</doc>
+<status status="PASS" start="2025-11-28T15:37:46.866655" elapsed="0.032539"/>
+</kw>
+<kw name="Page Should Contain Element" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:46.907260" level="INFO">Current page contains element 'xpath=//a[contains(., 'Entrar')]'.</msg>
+<arg>xpath=//a[contains(., 'Entrar')]</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2025-11-28T15:37:46.899429" elapsed="0.007910"/>
+</kw>
+<doc>Testa se a página inicial carrega corretamente</doc>
+<status status="PASS" start="2025-11-28T15:37:46.866205" elapsed="0.041363"/>
+</test>
+<test id="s1-t2" name="Teste Navegação Para Cadastro" line="17">
+<kw name="Click Element" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:46.908348" level="INFO">Clicking element 'xpath=//button[contains(., 'Cadastrar')]'.</msg>
+<arg>xpath=//button[contains(., 'Cadastrar')]</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2025-11-28T15:37:46.908204" elapsed="0.166742"/>
+</kw>
+<kw name="Click Element" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:47.075775" level="INFO">Clicking element 'xpath=//a[contains(., 'Como Voluntário')]'.</msg>
+<arg>xpath=//a[contains(., 'Como Voluntário')]</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2025-11-28T15:37:47.075453" elapsed="6.055143"/>
+</kw>
+<kw name="Wait Until Page Contains" owner="SeleniumLibrary">
+<arg>Cadastro de Voluntário</arg>
+<arg>timeout=10</arg>
+<doc>Waits until ``text`` appears on the current page.</doc>
+<status status="PASS" start="2025-11-28T15:37:53.130922" elapsed="0.009910"/>
+</kw>
+<kw name="Page Should Contain" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:53.189749" level="INFO">Current page contains text 'Cadastro de Voluntário'.</msg>
+<arg>Cadastro de Voluntário</arg>
+<doc>Verifies that current page contains ``text``.</doc>
+<status status="PASS" start="2025-11-28T15:37:53.141259" elapsed="0.048600"/>
+</kw>
+<doc>Testa a navegação para página de cadastro</doc>
+<status status="PASS" start="2025-11-28T15:37:46.907940" elapsed="6.282425"/>
+</test>
+<test id="s1-t3" name="Teste Cadastro Voluntário Simples" line="26">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:53.191685" level="INFO">Opening url 'https://projetofinal-testedesistemas-2-0.onrender.com/cadastro/usuario'</msg>
+<arg>${URL}/cadastro/usuario</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2025-11-28T15:37:53.191499" elapsed="0.668798"/>
+</kw>
+<kw name="Get Current Date" owner="DateTime">
+<msg time="2025-11-28T15:37:53.860945" level="INFO">${timestamp} = 153753</msg>
+<var>${timestamp}</var>
+<arg>result_format=%H%M%S</arg>
+<doc>Returns current local or UTC time with an optional increment.</doc>
+<status status="PASS" start="2025-11-28T15:37:53.860639" elapsed="0.000344"/>
+</kw>
+<kw name="Set Variable" owner="BuiltIn">
+<msg time="2025-11-28T15:37:53.861396" level="INFO">${email} = robot153753@teste.com</msg>
+<var>${email}</var>
+<arg>robot${timestamp}@teste.com</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<status status="PASS" start="2025-11-28T15:37:53.861196" elapsed="0.000232"/>
+</kw>
+<kw name="Input Text" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:53.861822" level="INFO">Typing text 'Teste Robot' into text field 'id=nome'.</msg>
+<arg>id=nome</arg>
+<arg>Teste Robot</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2025-11-28T15:37:53.861642" elapsed="0.149464"/>
+</kw>
+<kw name="Input Text" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:54.011767" level="INFO">Typing text 'robot153753@teste.com' into text field 'id=email'.</msg>
+<arg>id=email</arg>
+<arg>${email}</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2025-11-28T15:37:54.011483" elapsed="0.119904"/>
+</kw>
+<kw name="Input Text" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:54.131964" level="INFO">Typing text '123456' into text field 'id=senha'.</msg>
+<arg>id=senha</arg>
+<arg>123456</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2025-11-28T15:37:54.131731" elapsed="0.109406"/>
+</kw>
+<kw name="Input Text" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:54.241717" level="INFO">Typing text 'São Paulo' into text field 'id=cidade'.</msg>
+<arg>id=cidade</arg>
+<arg>São Paulo</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2025-11-28T15:37:54.241488" elapsed="0.063761"/>
+</kw>
+<kw name="Click Button" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:54.305845" level="INFO">Clicking button 'xpath=//button[contains(., 'Cadastrar como Voluntário')]'.</msg>
+<arg>xpath=//button[contains(., 'Cadastrar como Voluntário')]</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2025-11-28T15:37:54.305616" elapsed="2.311989"/>
+</kw>
+<kw name="Wait Until Page Contains" owner="SeleniumLibrary">
+<arg>Entrar</arg>
+<arg>timeout=10</arg>
+<doc>Waits until ``text`` appears on the current page.</doc>
+<status status="PASS" start="2025-11-28T15:37:56.618089" elapsed="0.013315"/>
+</kw>
+<kw name="Page Should Contain" owner="SeleniumLibrary">
+<msg time="2025-11-28T15:37:56.638953" level="INFO">Current page contains text 'Entrar'.</msg>
+<arg>Entrar</arg>
+<doc>Verifies that current page contains ``text``.</doc>
+<status status="PASS" start="2025-11-28T15:37:56.631853" elapsed="0.007183"/>
+</kw>
+<doc>Testa o cadastro básico de voluntário</doc>
+<status status="PASS" start="2025-11-28T15:37:53.191096" elapsed="3.448173"/>
+</test>
+<kw name="Fechar Navegador" type="TEARDOWN">
+<kw name="Close Browser" owner="SeleniumLibrary">
+<doc>Closes the current browser.</doc>
+<status status="PASS" start="2025-11-28T15:37:56.640373" elapsed="2.378789"/>
+</kw>
+<status status="PASS" start="2025-11-28T15:37:56.640141" elapsed="2.379159"/>
+</kw>
+<status status="PASS" start="2025-11-28T15:37:31.163284" elapsed="27.856063"/>
+</suite>
+<statistics>
+<total>
+<stat pass="3" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Fluxo Voluntario" id="s1" pass="3" fail="0" skip="0">Fluxo Voluntario</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
